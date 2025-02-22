@@ -77,6 +77,10 @@ public class SslBot extends TelegramLongPollingBot {
         var text = """
                 Добро пожаловать в бот, %s!
                 
+                Команда /start - приветственное сообщение
+                
+                Команда /ssl - Отправляет данные о SSL - Сертификатах
+                
                 Здесь вы сможете проверить, просрочен ли SSL-сертификат.
                 """;
         var formattedText = String.format(text, userName);
