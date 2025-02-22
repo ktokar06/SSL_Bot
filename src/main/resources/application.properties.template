@@ -1,0 +1,2 @@
+spring.application.name= название вашего проекта
+bot.token= токен телеграмм бота
