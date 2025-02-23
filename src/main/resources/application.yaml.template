@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: certificate
+
+bot:
+  token: telegramm-bot-token
+
+urls:
+  url-web
+  url-web
+

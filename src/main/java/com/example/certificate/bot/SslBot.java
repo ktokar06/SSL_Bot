@@ -70,7 +70,7 @@ public class SslBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "telegramm";
+        return "@telegramname";
     }
 
     private void startCommand(Long chatId, String userName) {

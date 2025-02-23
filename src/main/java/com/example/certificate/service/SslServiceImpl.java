@@ -1,7 +1,9 @@
 package com.example.certificate.service;
 
 import com.example.certificate.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
@@ -10,15 +12,27 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
 @Service
-public class SslServiceImpl implements SslService  {
+public class SslServiceImpl implements SslService {
+
+    @Value("${url-web}")
+    private String web;
+
+    @Value("${url-web}")
+    private String webUrl;
 
     @Override
     public String getSslCertificatePay() throws ServiceException {
-        String urlString = "WebSite";
+        // String urlString = "WebSite"; Для application.properties
         try {
+            X509Certificate certificate = getSslCertificate(webUrl);
+            /*
+
+            Для application.properties
             X509Certificate certificate = getSslCertificate(urlString);
+
+            */
             if (certificate != null) {
-                return formatCertificateDetails(certificate, urlString);
+                return formatCertificateDetails(certificate, webUrl);
             }
         } catch (IOException e) {
             throw new ServiceException("Не удалось получить SSL сертификат.", e);
@@ -28,11 +42,17 @@ public class SslServiceImpl implements SslService  {
 
     @Override
     public String getSslCertificateIft() throws ServiceException {
-        String urlString = "WebSite";
+        // String urlString = "WebSite"; Для application.properties
         try {
+            X509Certificate certificate = getSslCertificate(web);
+            /*
+
+            Для application.properties
             X509Certificate certificate = getSslCertificate(urlString);
+
+            */
             if (certificate != null) {
-                return formatCertificateDetails(certificate, urlString);
+                return formatCertificateDetails(certificate, web);
             }
         } catch (IOException e) {
             throw new ServiceException("Не удалось получить SSL сертификат.", e);
