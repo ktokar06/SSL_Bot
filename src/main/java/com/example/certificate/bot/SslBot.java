@@ -92,7 +92,7 @@ public class SslBot extends TelegramLongPollingBot {
         sendMessage(chatId, formattedText);
     }
 
-    @Scheduled(fixedRate = 1800000)
+    @Scheduled(fixedRate = 1800000)// Время установил на 30 мин
     public void scheduledTask() throws ServiceException {
         for (Long chatId : activeUsers) {
             if (!activeUsers.contains(chatId)) {
