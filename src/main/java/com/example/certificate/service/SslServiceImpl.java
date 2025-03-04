@@ -1,61 +1,29 @@
 package com.example.certificate.service;
 
-import com.example.certificate.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
 import java.net.URL;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLPeerUnverifiedException;
+
+import org.springframework.stereotype.Service;
+
+import com.example.certificate.exception.ServiceException;
+
 @Service
 public class SslServiceImpl implements SslService {
 
-    @Value("${url-web}")
-    private String web;
-
-    @Value("${url-web}")
-    private String webUrl;
-
     @Override
-    public String getSslCertificatePay() throws ServiceException {
-        // String urlString = "WebSite"; Для application.properties
+    public String getSslCertificatePay(String webUrl, String name) throws ServiceException {
         try {
             X509Certificate certificate = getSslCertificate(webUrl);
-            /*
-
-            Для application.properties
-            X509Certificate certificate = getSslCertificate(urlString);
-
-            */
             if (certificate != null) {
-                return formatCertificateDetails(certificate, webUrl);
+                return formatCertificateDetails(certificate, webUrl, name);
             }
         } catch (IOException e) {
-            throw new ServiceException("Не удалось получить SSL сертификат.", e);
-        }
-        return "SSL сертификат не найден.";
-    }
-
-    @Override
-    public String getSslCertificateIft() throws ServiceException {
-        // String urlString = "WebSite"; Для application.properties
-        try {
-            X509Certificate certificate = getSslCertificate(web);
-            /*
-
-            Для application.properties
-            X509Certificate certificate = getSslCertificate(urlString);
-
-            */
-            if (certificate != null) {
-                return formatCertificateDetails(certificate, web);
-            }
-        } catch (IOException e) {
-            throw new ServiceException("Не удалось получить SSL сертификат.", e);
+            return formatErrorCertDetails(webUrl, name);
         }
         return "SSL сертификат не найден.";
     }
@@ -80,11 +48,20 @@ public class SslServiceImpl implements SslService {
         return null;
     }
 
-    private String formatCertificateDetails(X509Certificate certificate, String urlString) {
+    private String formatCertificateDetails(X509Certificate certificate, String urlString, String name) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Certificate Viewer: ").append(urlString).append("\n")
-                .append("Issued On: ").append(certificate.getNotBefore()).append("\n")
-                .append("Expires On: ").append(certificate.getNotAfter()).append("\n");
+        sb.append(name).append("\n")
+                .append("Хост: ").append(urlString).append("\n")
+                .append("Истикает: ").append(certificate.getNotAfter()).append("\n\n");
+
+        return sb.toString();
+    }
+
+    private String formatErrorCertDetails(String url, String name) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append("\n")
+                .append("Для хоста: ").append(url).append("\n")
+                .append("Информация о сертификате не найдена или сертификата не требуется проверка.\n\n");
 
         return sb.toString();
     }

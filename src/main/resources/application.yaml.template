@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: certificate
+
+bot:
+  token: <! Нужно вставить свой токен !>
+
+hosts-properties:
+  items:
+    - name: "Host 1"
+      url: "https://host-one.link/"
+    - name: "Host 2"
+      url: "https://host-second.link/"
+    - name: "Host 3"
+      url: "https://host-three.link/"

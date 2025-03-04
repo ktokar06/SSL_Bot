@@ -1,7 +1,16 @@
 package com.example.certificate.bot;
 
-import com.example.certificate.exception.ServiceException;
-import com.example.certificate.service.SslService;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +23,11 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import com.example.certificate.configuration.HostItem;
+import com.example.certificate.configuration.HostProperties;
+import com.example.certificate.exception.ServiceException;
+import com.example.certificate.service.SslService;
+import com.example.certificate.service.SslServiceImpl;
 
 @Component
 @Configuration
@@ -35,19 +42,23 @@ public class SslBot extends TelegramLongPollingBot {
     @Autowired
     private SslService sslService;
 
+    @Autowired
+    private HostProperties configProperties;
+
     private Set<Long> activeUsers = new HashSet<>();
 
-    public SslBot(@Value("${bot.token}") String botToken) {
+    public SslBot(@Value("${bot.token}") String botToken, SslServiceImpl sslService) {
         super(botToken);
         loadActiveUsersFromFile();
     }
 
     @Override
     public void onUpdateReceived(Update update) {
+
         if (!update.hasMessage() || !update.getMessage().hasText()) {
             return;
         }
-        var message = update.getMessage().getText();
+        String message = update.getMessage().getText();
         var chatId = update.getMessage().getChatId();
 
         activeUsers.add(chatId);
@@ -61,6 +72,7 @@ public class SslBot extends TelegramLongPollingBot {
                 try {
                     sslCommand(chatId);
                     saveActiveUsersToFile();
+
                 } catch (ServiceException e) {
                     throw new RuntimeException(e);
                 }
@@ -105,17 +117,23 @@ public class SslBot extends TelegramLongPollingBot {
     }
 
     private String createFormattedText() throws ServiceException {
-        String sslPayInfo = sslService.getSslCertificatePay();
-        String sslIftInfo = sslService.getSslCertificateIft();
+        String sslInfo = "";
 
-        String sslInfo = sslPayInfo + "\n" + sslIftInfo;
+        List<HostItem> items = configProperties.getItems();
+        if (items != null && !items.isEmpty()) {
+            for (HostItem item : items) {
+                sslInfo += sslService.getSslCertificatePay(item.getUrl(), item.getName());
+            }
+        } else {
+            sslInfo = "Список пуст.";
+        }
 
         if (sslInfo != null && !sslInfo.isEmpty()) {
-            return String.format("Дата запроса: %s\n%s",
+            return String.format("Дата запроса: %s\n\n%s",
                     LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                     sslInfo);
         } else {
-            return "Сертификат не был получен.";
+            return "Сертификаты не получены.";
         }
     }
 
